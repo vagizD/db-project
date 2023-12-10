@@ -6,7 +6,7 @@ SET search_path = credit_scheme;
 
 CREATE TABLE IF NOT EXISTS clients
 (
-    client_id         serial primary key,
+    client_id         text check (length(client_id) = 10) primary key,
     has_active_credit boolean not null,
     -- is_first_time == true, if client has exactly 1 credit in our company, else false
     is_first_time     boolean not null
@@ -106,30 +106,9 @@ CREATE TABLE IF NOT EXISTS history_payments
 
 CREATE TABLE IF NOT EXISTS blacklist
 (
-    client_id    serial primary key references clients,
+    client_id    text check (length(client_id) = 10) primary key references clients,
     under_report text,
     start_date   timestamp(0) not null
-);
-
-CREATE TABLE IF NOT EXISTS orders
-(
-    order_id          serial primary key,
-    request_id        integer references history_requests,
-    client_id         integer references clients,
-    is_issued         boolean not null,
-    issued_sum        integer check (case when is_issued = false then null else not null end),
-    cred_end_date     date check (case when is_issued = false then null else not null end),
-    fee_percent       numeric(4, 3) check (
-        case when is_issued = false then null else 0 <= fee_percent and fee_percent <= 1 end
-        ),
-    paid_sum          integer check (case when is_issued = false then null else paid_sum >= 0 end),
-    next_payment_date date check (case
-                                      when is_issued = false then null
-                                      else
-                                          next_payment_date between issued_at and cred_end_date end),
-    order_status      boolean check (case when is_issued = false then null else not null end),
-    overdue_sum       integer check (case when is_issued = false then null else not null end),
-    issued_at         date check (case when is_issued = false then null else not null end)
 );
 
 CREATE TABLE IF NOT EXISTS overdue_orders
