@@ -2,6 +2,14 @@ CREATE SCHEMA IF NOT EXISTS credit_scheme;
 
 SET search_path = credit_scheme, public;
 
+CREATE TABLE IF NOT EXISTS clients
+(
+    client_id         serial primary key,
+    has_active_credit boolean not null,
+    -- is_first_time == true, if client has exactly 1 credit in our company, else false
+    is_first_time     boolean not null
+);
+
 CREATE TABLE IF NOT EXISTS history_requests
 (
     request_id             serial primary key,
@@ -72,15 +80,15 @@ CREATE TABLE IF NOT EXISTS orders
     request_id        integer references history_requests,
     client_id         integer references clients,
     is_issued         boolean not null,  -- flag field
-    issued_sum        integer check (case when is_issued = true then null else issued_sum > 100 end),
-    cred_end_date     date check (case when is_issued = true then null else not null end),
-    fee_percent       numeric(4, 3) check (case when is_issued = true then null else fee_percent between 0 and 1 end),
-    paid_sum          numeric(19, 2) check (case when is_issued = true then null else paid_sum >= 0 end),
-    next_payment_date date check (case when is_issued = true then null
+    issued_sum        integer check (case when is_issued = false then null else issued_sum > 100 end),
+    cred_end_date     date check (case when is_issued = false then null else not null end),
+    fee_percent       numeric(4, 3) check (case when is_issued = false then null else fee_percent between 0 and 1 end),
+    paid_sum          numeric(19, 2) check (case when is_issued = false then null else paid_sum >= 0 end),
+    next_payment_date date check (case when is_issued = false then null
                                        else next_payment_date between issued_at and cred_end_date end),
-    order_status      boolean check (case when is_issued = true then null else order_status in (0, 1, 2) end),
-    overdue_sum       numeric(19, 2) check (case when is_issued = true then null else not null end),
-    issued_at         date check (case when is_issued = true then null else not null end)
+    order_status      boolean check (case when is_issued = false then null else not null end),
+    overdue_sum       numeric(19, 2) check (case when is_issued = false then null else not null end),
+    issued_at         date check (case when is_issued = false then null else not null end)
 );
 
 CREATE TABLE IF NOT EXISTS history_payments
@@ -91,14 +99,6 @@ CREATE TABLE IF NOT EXISTS history_payments
     -- rubles,  paid for overdue (additional percents)
     payment_sum_percent      double precision check (not null or payment_sum_percent > 0),
     payment_date     date not null
-);
-
-CREATE TABLE IF NOT EXISTS clients
-(
-    client_id         serial primary key,
-    has_active_credit boolean not null,
-    -- is_first_time == true, if client has exactly 1 credit in our company, else false
-    is_first_time     boolean not null
 );
 
 CREATE TABLE IF NOT EXISTS blacklist
