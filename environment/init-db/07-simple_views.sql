@@ -9,6 +9,8 @@
 -- drop schema credit_views cascade;
 create schema if not exists credit_views;
 
+set search_path = credit_scheme;
+
 -- считаю, что скрытие = не берем, маскирование - заменяем часть звёздочками
 
 create or replace view credit_views.clients_view as
