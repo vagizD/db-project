@@ -1,6 +1,6 @@
 CREATE SCHEMA IF NOT EXISTS credit_scheme;
 
-SET search_path = credit_scheme, public;
+SET search_path = credit_scheme;
 
 CREATE TABLE IF NOT EXISTS clients
 (

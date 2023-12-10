@@ -2,7 +2,7 @@
 
 #### Development
 
-1. Start postgres on your machine.
+1. Start `docker` on your machine.
 2. Install requirements.
 
 ```
@@ -17,3 +17,7 @@ bash scripts/start.sh
 ```
 bash scripts/shutdown
 ```
+
+#### Tasks
+
+1. Add required inserts: decisions in `decision_reasons`.
