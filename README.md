@@ -12,7 +12,8 @@ pip install -r requirements.txt
 ```
 bash scripts/start.sh
 ```
-4. Contribute.
+4. Using `POSTGRES_USER`, `POSTGRES_PASSWORD`, and `POSTGRES_DB` connect to database.
+5. Contribute.
 6. Shutdown database.
 ```
 bash scripts/shutdown
