@@ -22,9 +22,11 @@ CREATE TABLE IF NOT EXISTS history_requests
     middle_name            text      not null,
     passport               text check (length(passport) = 10), -- TODO
     passport_issued_by     text      not null,
-    passport_expiring_date date check (not null and passport_expiring_date > now()::date),
+    birth_date             date check (not null and birth_date < now()::date - interval '18' year),
     email                  text check (email like '%@%.%'),
     phone_number           text check (phone_number ~ '^\d+$' and length(phone_number) = 11),
+    country                text      not null,
+    city                   text      not null,
     address                text      not null
 );
 
@@ -80,7 +82,7 @@ CREATE TABLE IF NOT EXISTS orders
 (
     order_id          serial primary key,
     request_id        integer references history_requests,
-    client_id         integer references clients,
+    client_id         text references clients,
     is_issued         boolean not null, -- flag field
     issued_sum        integer check (case when is_issued = false then null else issued_sum > 100 end),
     cred_end_date     date check (case when is_issued = false then null else not null end),
