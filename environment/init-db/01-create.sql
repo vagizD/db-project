@@ -96,12 +96,14 @@ CREATE TABLE IF NOT EXISTS orders
 
 CREATE TABLE IF NOT EXISTS history_payments
 (
-    order_id            serial primary key references orders,
+    payment_id          serial primary key,
+    order_id            integer references orders,
     -- rubles, paid for main due
-    payment_sum_main    double precision check (not null and payment_sum_main > 0),
+    payment_sum_main    numeric(19, 2) check (not null and payment_sum_main >= 0),
     -- rubles,  paid for overdue (additional percents)
-    payment_sum_percent double precision check (not null or payment_sum_percent > 0),
-    payment_date        date not null
+    payment_sum_percent numeric(19, 2) check (not null and payment_sum_percent >= 0),
+    payment_date        date not null,
+    check (payment_sum_main > 0 or payment_sum_percent > 0)
 );
 
 CREATE TABLE IF NOT EXISTS blacklist
@@ -114,7 +116,7 @@ CREATE TABLE IF NOT EXISTS blacklist
 CREATE TABLE IF NOT EXISTS overdue_orders
 (
     id                 serial primary key,
-    order_id           integer references history_payments,
+    order_id           integer references orders,
     overdue_start_date date not null,
     overdue_end_date   date check (null or overdue_end_date >= overdue_start_date)
 );

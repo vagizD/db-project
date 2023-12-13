@@ -125,13 +125,13 @@ VALUES
 
 -- history_payments
 INSERT INTO history_payments
-    (order_id, payment_sum_main, payment_sum_percent, payment_date)
+    (payment_id, order_id, payment_sum_main, payment_sum_percent, payment_date)
 VALUES
-    (1, 10000, 1100, '2023-05-01'),
-    (2, 5020, 0, '2023-09-15'),
-    (3, 999, 0, '2023-10-14'),
-    (4, 1050, 912, '2023-09-29'),
-    (6, 14940, 512, '2023-09-10');
+    (default, 1, 10000, 1100, '2023-05-01'),
+    (default, 2, 5020, 10, '2023-09-15'),
+    (default, 3, 999, 10, '2023-10-14'),
+    (default, 4, 1050, 912, '2023-09-29'),
+    (default, 6, 14940, 512, '2023-09-10');
 
 -- overdue_orders
 INSERT INTO overdue_orders
