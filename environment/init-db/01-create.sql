@@ -25,6 +25,8 @@ CREATE TABLE IF NOT EXISTS history_requests
     passport_issued_by     text      not null,
     email                  text check (email like '%@%.%'),
     phone_number           text check (phone_number ~ '^\d+$' and length(phone_number) = 11),
+    country                text      not null,
+    city                   text      not null,
     address                text      not null
 );
 

@@ -29,14 +29,6 @@ from credit_views.blacklist_view;
 -- ALTER SEQUENCE blacklist_client_id_seq RESTART WITH 1;
 -- ALTER SEQUENCE clients_client_id_seq RESTART WITH 1;
 
-insert into clients
-values ('0123456789', true, true),
-       ('0123456788', true, true);
-
-insert into blacklist
-values ('0123456789', 'gone too late', now()),
-       ('0123456788', 'gone too early', now());
-
 -- if client_id is masked here than what's left?
 select *
 from credit_views.clients_view;
@@ -58,17 +50,17 @@ select *
 from history_decisions;
 
 insert into history_requests
-values (default, now() - interval '1' day, 10000, 'Fedor', 'Kokoshkin', '-',
+    (request_at, request_sum, first_name, last_name, middle_name, birth_date,
+     passport, passport_issued_by, email, phone_number, country, city, address)
+values (now() - interval '1' day, 10000, 'Fedor', 'Kokoshkin', '-',
         now()::date - interval '30' year, '1234567899',
-        'myself', 'a@b.c', '12345678901', 'senegal');
+        'myself', 'a@b.c', '12345678901', 'senegal', 'somecity', 'somehouse');
 
 insert into decision_reasons
 values (default, 'named Daniil');
 
 alter sequence history_decisions_request_id_seq restart with 1;
 
-insert into history_decisions
-values (10, 1, null, null, null, null, false, null);
 
 select *
 from credit_views.decision_reasons_view;
@@ -100,11 +92,6 @@ select mask_number(payment_sum_main)    as masked_sum,
        payment_date
 from history_payments;
 
-insert into orders
-values (default, 10, '0123456789', 1::bool, 10000, '2024-01-01', 0.2, 0, now()::date, 1::bool, 0, '2022-01-01');
-
-insert into history_payments
-values (default, 1, 1000, 1234, now()::date - interval '1' day);
 
 select *
 from credit_views.history_payments_view;
@@ -130,6 +117,8 @@ select request_at,
        mask_name(passport_issued_by)       as masked_passport_issued_by,
        mask_name(email)                    as masked_email,
        mask_number(phone_number)             as masked_number,
+       mask_name(country)                   as masked_country,
+       mask_name(city)                      as masked_city,
        mask_name(address)                   as masked_address
 from history_requests;
 
