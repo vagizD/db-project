@@ -6,7 +6,7 @@ SET search_path = credit_scheme;
 
 CREATE TABLE IF NOT EXISTS clients
 (
-    client_id         serial primary key,
+    client_id         text primary key check (length(client_id) = 10),
     has_active_credit boolean not null,
     -- is_first_time == true, if client has exactly 1 credit in our company, else false
     is_first_time     boolean not null
@@ -20,9 +20,9 @@ CREATE TABLE IF NOT EXISTS history_requests
     first_name             text      not null,
     last_name              text      not null,
     middle_name            text      not null,
+    birth_date             date check (not null and birth_date <= now()::date - interval '18 years'),
     passport               text check (length(passport) = 10), -- TODO
     passport_issued_by     text      not null,
-    passport_expiring_date date check (not null and passport_expiring_date > now()::date),
     email                  text check (email like '%@%.%'),
     phone_number           text check (phone_number ~ '^\d+$' and length(phone_number) = 11),
     address                text      not null
@@ -59,28 +59,28 @@ CREATE TABLE IF NOT EXISTS models
 CREATE TABLE IF NOT EXISTS history_decisions
 (
     request_id         serial primary key references history_requests,
-    -- decision_reason_id == 0 is in blacklist
-    -- decision_reason_id == 1 is client not verified
-    -- decision_reason_id == 2 is scoring model did not approve
-    -- decision_reason_id == 3 is business logic failed
-    -- decision_reason_id == 4 is order approved
+    -- decision_reason_id == 1 is in blacklist
+    -- decision_reason_id == 2 is client not verified
+    -- decision_reason_id == 3 is scoring model did not approve
+    -- decision_reason_id == 4 is business logic failed
+    -- decision_reason_id == 5 is order approved
     decision_reason_id integer references decision_reasons,
     model_id           integer references models,
     model_score        numeric(4, 3) check
-        (case when decision_reason_id in (0, 1) then null else model_score between 0 and 1 end),
+        (case when decision_reason_id in (1, 2) then null else model_score between 0 and 1 end),
     scored_at          timestamp(0) check
-        (case when decision_reason_id in (0, 1) then null else not null end),
+        (case when decision_reason_id in (1, 2) then null else not null end),
     approved_sum       integer check
-        (case when decision_reason_id in (0, 1) then approved_sum = -1 else approved_sum >= 0 end),
+        (case when decision_reason_id in (1, 2) then approved_sum = -1 else approved_sum >= 0 end),
     is_under           boolean not null,
-    max_cred_end_date  date check (case when decision_reason_id in (0, 1, 2, 3) then null else not null end)
+    max_cred_end_date  date check (case when decision_reason_id in (1, 2, 3, 4) then null else not null end)
 );
 
 CREATE TABLE IF NOT EXISTS orders
 (
     order_id          serial primary key,
     request_id        integer references history_requests,
-    client_id         integer references clients,
+    client_id         text references clients,
     is_issued         boolean not null, -- flag field
     issued_sum        integer check (case when is_issued = false then null else issued_sum > 100 end),
     cred_end_date     date check (case when is_issued = false then null else not null end),
@@ -96,46 +96,27 @@ CREATE TABLE IF NOT EXISTS orders
 
 CREATE TABLE IF NOT EXISTS history_payments
 (
-    order_id            serial primary key references orders,
+    payment_id          serial primary key,
+    order_id            integer references orders,
     -- rubles, paid for main due
-    payment_sum_main    double precision check (not null and payment_sum_main > 0),
+    payment_sum_main    numeric(19, 2) check (not null and payment_sum_main >= 0),
     -- rubles,  paid for overdue (additional percents)
-    payment_sum_percent double precision check (not null or payment_sum_percent > 0),
-    payment_date        date not null
+    payment_sum_percent numeric(19, 2) check (not null and payment_sum_percent >= 0),
+    payment_date        date not null,
+    check (payment_sum_main > 0 or payment_sum_percent > 0)
 );
 
 CREATE TABLE IF NOT EXISTS blacklist
 (
-    client_id    serial primary key references clients,
+    client_id    text primary key references clients,
     under_report text,
     start_date   timestamp(0) not null
-);
-
-CREATE TABLE IF NOT EXISTS orders
-(
-    order_id          serial primary key,
-    request_id        integer references history_requests,
-    client_id         integer references clients,
-    is_issued         boolean not null,
-    issued_sum        integer check (case when is_issued = false then null else not null end),
-    cred_end_date     date check (case when is_issued = false then null else not null end),
-    fee_percent       numeric(4, 3) check (
-        case when is_issued = false then null else 0 <= fee_percent and fee_percent <= 1 end
-        ),
-    paid_sum          integer check (case when is_issued = false then null else paid_sum >= 0 end),
-    next_payment_date date check (case
-                                      when is_issued = false then null
-                                      else
-                                          next_payment_date between issued_at and cred_end_date end),
-    order_status      boolean check (case when is_issued = false then null else not null end),
-    overdue_sum       integer check (case when is_issued = false then null else not null end),
-    issued_at         date check (case when is_issued = false then null else not null end)
 );
 
 CREATE TABLE IF NOT EXISTS overdue_orders
 (
     id                 serial primary key,
-    order_id           integer references history_payments,
+    order_id           integer references orders,
     overdue_start_date date not null,
     overdue_end_date   date check (null or overdue_end_date >= overdue_start_date)
 );
