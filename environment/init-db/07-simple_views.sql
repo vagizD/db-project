@@ -6,36 +6,64 @@
 -- Например, для номера карты можно использовать маскирование вида: 4276********0000.
 
 
--- drop schema credit_views cascade;
+-- drop schema if exists credit_views cascade;
 create schema if not exists credit_views;
 
-set search_path = credit_scheme;
+set search_path = credit_scheme, public;
+
+create or replace function credit_views.mask_number(x anyelement)
+    returns text as
+$$
+begin
+    case
+        when x is null then return '****' || 0;
+        else return regexp_replace(substr(x::text, 1, length(x::text) - 1), '\w', '*', 'g') ||
+                    substr(x::text, length(x::text));
+        end case;
+end;
+$$ language plpgsql;
+
+create or replace function credit_views.mask_name(nm text)
+    returns text as
+$$
+begin
+    case
+        when nm is null then return 'A' || '****' || 'a';
+        else return substr(nm, 1, 1) || regexp_replace(substr(nm, length(nm) - 2), '\w', '*', 'g') ||
+                    substr(nm, length(nm));
+        end case;
+end;
+$$ language plpgsql;
+
+create or replace function credit_views.mask_date(nm anyelement)
+    returns text as
+$$
+begin
+    case
+        when nm is null then return '1999' || '*******';
+        else return substr(nm::text, 1, 5) || regexp_replace(substr(nm::text, length(nm::text) - 5), '\w', '*', 'g');
+        end case;
+end;
+$$ language plpgsql;
 
 -- считаю, что скрытие = не берем, маскирование - заменяем часть звёздочками
 
 create or replace view credit_views.clients_view as
-select *
+select credit_views.mask_number(client_id) masked_client_id, has_active_credit, is_first_time
 from clients;
 
 create or replace view credit_views.blacklist_view as
-select *
+select credit_views.mask_number(client_id)   masked_client_id,
+       under_report,
+       credit_views.mask_date(start_date) as masked_date
 from blacklist;
 
 -- test
-select *
-from credit_views.blacklist_view;
-
--- truncate table clients, blacklist cascade; -- to insert data again
--- ALTER SEQUENCE blacklist_client_id_seq RESTART WITH 1;
--- ALTER SEQUENCE clients_client_id_seq RESTART WITH 1;
-
--- if client_id is masked here than what's left?
 select *
 from credit_views.clients_view;
 
 select *
 from credit_views.blacklist_view;
-
 
 -- decision_reasons_view and history_credit_history are not needed as well)
 create or replace view credit_views.decision_reasons_view as
@@ -43,52 +71,28 @@ select *
 from decision_reasons;
 
 create or replace view credit_views.history_credit_history_view as
-select *
+select request_id, credit_views.mask_name(credit_history_xml) as masked_credit_history_xml
 from history_credit_history;
 
 select *
-from history_decisions;
-
-insert into history_requests
-    (request_at, request_sum, first_name, last_name, middle_name, birth_date,
-     passport, passport_issued_by, email, phone_number, country, city, address)
-values (now() - interval '1' day, 10000, 'Fedor', 'Kokoshkin', '-',
-        now()::date - interval '30' year, '1234567899',
-        'myself', 'a@b.c', '12345678901', 'senegal', 'somecity', 'somehouse');
-
-insert into decision_reasons
-values (default, 'named Daniil');
-
-alter sequence history_decisions_request_id_seq restart with 1;
-
+from credit_views.history_credit_history_view;
 
 select *
 from credit_views.decision_reasons_view;
 
 create or replace view credit_views.history_decisions_view as
-select -- request_id omitted
-       -- decision_reason_id, model_id  too
-       model_score,
+select model_score,
        scored_at,
        approved_sum,
-       -- is_under,
        max_cred_end_date
---        substr(customers.name, 1, 1) || regexp_replace(substr(customers.name, 2), '\w', '*', 'g')   as masked_name,
---        substr(customers.email, 1, 1) || regexp_replace(substr(customers.email, 2), '\w', '*', 'g') as masked_email,
 from history_decisions;
 
-create or replace function mask_number(x anyelement)
-    returns text as
-$$
-begin
-    return regexp_replace(substr(x::text, 1, length(x::text) - 1), '\w', '*', 'g') ||
-           substr(x::text, length(x::text));
-end;
-$$ language plpgsql;
+select *
+from credit_views.history_decisions_view;
 
 create or replace view credit_views.history_payments_view as
-select mask_number(payment_sum_main)    as masked_sum,
-       mask_number(payment_sum_percent) as masked_percent,
+select credit_views.mask_number(payment_sum_main)    as masked_sum,
+       credit_views.mask_number(payment_sum_percent) as masked_percent,
        payment_date
 from history_payments;
 
@@ -96,30 +100,21 @@ from history_payments;
 select *
 from credit_views.history_payments_view;
 
-create or replace function mask_name(nm text)
-    returns text as
-$$
-begin
-    return substr(nm, 1, 1) || regexp_replace(substr(nm, length(nm) - 2), '\w', '*', 'g') ||
-           substr(nm, length(nm));
-end;
-$$ language plpgsql;
-
 create or replace view credit_views.history_requests_view
 as
 select request_at,
-       mask_number(request_sum)             as masked_requsted_sum,
-       mask_name(first_name)               as masked_first_name,
-       mask_name(last_name)                as masked_last_name,
-       mask_name(middle_name)              as masked_middle_name,
-       mask_number(birth_date)               as masked_birth_date,
-       mask_number(passport)                 as masked_passport,
-       mask_name(passport_issued_by)       as masked_passport_issued_by,
-       mask_name(email)                    as masked_email,
-       mask_number(phone_number)             as masked_number,
-       mask_name(country)                   as masked_country,
-       mask_name(city)                      as masked_city,
-       mask_name(address)                   as masked_address
+       credit_views.mask_number(request_sum)      as masked_requsted_sum,
+       credit_views.mask_name(first_name)         as masked_first_name,
+       credit_views.mask_name(last_name)          as masked_last_name,
+       credit_views.mask_name(middle_name)        as masked_middle_name,
+       credit_views.mask_number(birth_date)       as masked_birth_date,
+       credit_views.mask_number(passport)         as masked_passport,
+       credit_views.mask_name(passport_issued_by) as masked_passport_issued_by,
+       credit_views.mask_name(email)              as masked_email,
+       credit_views.mask_number(phone_number)     as masked_number,
+       credit_views.mask_name(country)            as masked_country,
+       credit_views.mask_name(city)               as masked_city,
+       credit_views.mask_name(address)            as masked_address
 from history_requests;
 
 select *
@@ -131,35 +126,47 @@ from credit_views.history_requests_view;
 
 create or replace view credit_views.history_verification_results_view
 as
-select mask_number(score) as masked_score, is_verified, verified_at
+select credit_views.mask_number(score) as masked_score, is_verified, verified_at
 from history_verification_results;
+
+select *
+from credit_views.history_verification_results_view;
 
 create or replace view credit_views.models_view
 as
 select model_id,
-       mask_number(threshold)       as masked_threshlod,
+       credit_views.mask_number(threshold)       as masked_threshlod,
        algorithm_description,
        deployed_at,
-       mask_number(traffic_percent) as masked_traffic_percent,
+       credit_views.mask_number(traffic_percent) as masked_traffic_percent,
        model_type
 from models;
+
+select *
+from credit_views.models_view;
 
 create or replace view credit_views.order_view
 as
 select order_id,
        request_id,
-       client_id,
-       '*' as is_issued,
+       credit_views.mask_number(client_id) as masked_client_id,
+       '*'                                 as is_issued,
        cred_end_date,
        fee_percent,
        paid_sum,
        next_payment_date,
-       '*' as order_status,
+       '*'                                 as order_status,
        overdue_sum,
        issued_at
-from orders; -- TODO: if null then we need to mask too
+from orders;
+
+select *
+from credit_views.order_view;
 
 create or replace view credit_views.overdue_orders_view
 as
 select order_id, overdue_start_date, overdue_end_date
-from overdue_orders; -- TODO: date mask function
+from overdue_orders;
+
+select *
+from credit_views.overdue_orders_view;
