@@ -4,14 +4,6 @@ CREATE SCHEMA IF NOT EXISTS credit_scheme;
 
 SET search_path = credit_scheme;
 
-CREATE TABLE IF NOT EXISTS clients
-(
-    client_id         text primary key check (length(client_id) = 10),
-    has_active_credit boolean not null,
-    -- is_first_time == true, if client has exactly 1 credit in our company, else false
-    is_first_time     boolean not null
-);
-
 CREATE TABLE IF NOT EXISTS history_requests
 (
     request_id             serial primary key,
@@ -28,6 +20,15 @@ CREATE TABLE IF NOT EXISTS history_requests
     country                text      not null,
     city                   text      not null,
     address                text      not null
+);
+
+CREATE TABLE IF NOT EXISTS clients
+(
+    client_id text primary key check (length(client_id) = 10),
+--     passport text references history_requests, -- can't be so because passport is not unique (could be multiple requests from one human)
+    has_active_credit boolean not null,
+    -- is_first_time == true, if client has exactly 1 credit in our company, else false
+    is_first_time     boolean not null
 );
 
 CREATE TABLE IF NOT EXISTS history_verification_results
@@ -83,17 +84,14 @@ CREATE TABLE IF NOT EXISTS orders
     order_id          serial primary key,
     request_id        integer references history_requests,
     client_id         text references clients,
-    is_issued         boolean not null, -- flag field
-    issued_sum        integer check (case when is_issued = false then null else issued_sum > 100 end),
-    cred_end_date     date check (case when is_issued = false then null else not null end),
-    fee_percent       numeric(4, 3) check (case when is_issued = false then null else fee_percent between 0 and 1 end),
-    paid_sum          numeric(19, 2) check (case when is_issued = false then null else paid_sum >= 0 end),
-    next_payment_date date check (case
-                                      when is_issued = false then null
-                                      else next_payment_date between issued_at and cred_end_date end),
-    order_status      boolean check (case when is_issued = false then null else not null end),
-    overdue_sum       numeric(19, 2) check (case when is_issued = false then null else not null end),
-    issued_at         date check (case when is_issued = false then null else not null end)
+    issued_sum        integer check (issued_sum >= 1000),
+    cred_end_date     date not null,
+    fee_percent       numeric(4, 3) check (fee_percent between 0 and 1),
+    paid_sum          numeric(19, 2) check (paid_sum >= 0),
+    next_payment_date date check (next_payment_date between issued_at and cred_end_date),
+    order_status      boolean not null,
+    overdue_sum       numeric(19, 2) not null,
+    issued_at         date not null
 );
 
 CREATE TABLE IF NOT EXISTS history_payments
