@@ -2,7 +2,7 @@
 
 CREATE SCHEMA IF NOT EXISTS credit_scheme;
 
-SET search_path = credit_scheme;
+SET search_path = credit_scheme, public;
 
 CREATE TABLE IF NOT EXISTS history_requests
 (
@@ -25,7 +25,6 @@ CREATE TABLE IF NOT EXISTS history_requests
 CREATE TABLE IF NOT EXISTS clients
 (
     client_id         text primary key check (length(client_id) = 10),
---     passport text references history_requests, -- can't be so because passport is not unique (could be multiple requests from one human)
     has_active_credit boolean not null,
     -- is_first_time == true, if client has exactly 1 credit in our company, else false
     is_first_time     boolean not null
@@ -91,7 +90,14 @@ CREATE TABLE IF NOT EXISTS orders
     next_payment_date date check (next_payment_date between issued_at and cred_end_date),
     is_closed         boolean        not null,
     overdue_sum       numeric(19, 2) not null,
-    issued_at         date           not null
+    issued_at         date           not null,
+    total_due_sum     numeric(19, 2) generated always as ( issued_sum *
+                                                           (
+                                                               1 + fee_percent + 0.02 * greatest(
+                                                                       date_part('month', cred_end_date) -
+                                                                       date_part('month', issued_at),
+                                                                       1)
+                                                               ) + overdue_sum ) stored
 );
 
 CREATE TABLE IF NOT EXISTS history_payments
