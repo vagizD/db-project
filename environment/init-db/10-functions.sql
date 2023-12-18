@@ -32,7 +32,7 @@ begin
     update orders
     set overdue_sum = overdue_sum +
                       0.05 * get_ttl_due_sum(fee_percent, issued_sum, overdue_sum, issued_at, cred_end_date) /
-                      date_part('month', cred_end_date) - date_part('month', issued_at)
+                      (date_part('month', cred_end_date) - date_part('month', issued_at))
     where (orders.order_id = any (select o.order_id
                                   from overdue_orders ov
                                            inner join orders o on ov.order_id = o.order_id
