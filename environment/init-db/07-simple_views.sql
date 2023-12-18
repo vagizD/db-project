@@ -155,7 +155,7 @@ select order_id,
        fee_percent,
        paid_sum,
        next_payment_date,
-       '*'                                 as order_status,
+       '*'                                 as is_closed,
        overdue_sum,
        issued_at
 from orders;

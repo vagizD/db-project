@@ -89,7 +89,7 @@ CREATE TABLE IF NOT EXISTS orders
     fee_percent       numeric(4, 3) check (fee_percent between 0 and 1),
     paid_sum          numeric(19, 2) check (paid_sum >= 0),
     next_payment_date date check (next_payment_date between issued_at and cred_end_date),
-    order_status      boolean not null,
+    is_closed      boolean not null,
     overdue_sum       numeric(19, 2) not null,
     issued_at         date not null
 );
