@@ -157,7 +157,8 @@ select order_id,
        next_payment_date,
        '*'                                 as is_closed,
        overdue_sum,
-       issued_at
+       issued_at,
+       total_due_sum
 from orders;
 
 select *
