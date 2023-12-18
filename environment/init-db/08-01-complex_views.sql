@@ -3,7 +3,7 @@
 
 set search_path = credit_scheme, public;
 
-create or replace view decisions_requests_summary as
+create or replace view credit_views.decisions_requests_summary as
     select
         dr.decision_text,
         count(hd.request_id) as total_requests
@@ -14,3 +14,5 @@ create or replace view decisions_requests_summary as
         on hd.request_id = hr.request_id
     group by
         dr.decision_text;
+
+select * from credit_views.decisions_requests_summary;
