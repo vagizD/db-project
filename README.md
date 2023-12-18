@@ -19,6 +19,10 @@ bash scripts/start.sh
 bash scripts/shutdown
 ```
 
-#### Tasks
+#### Models
 
-1. Add required inserts: decisions in `decision_reasons`.
+1. Conceptual Model
+![plot](model_imgs/Conceptual_model.png)
+
+2. Logical Model
+![plot](model_imgs/Logical_model.png)
