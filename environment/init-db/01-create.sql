@@ -6,25 +6,25 @@ SET search_path = credit_scheme;
 
 CREATE TABLE IF NOT EXISTS history_requests
 (
-    request_id             serial primary key,
-    request_at             timestamp(0) not null,
-    request_sum            int check (not null and request_sum >= 1000),
-    first_name             text      not null,
-    last_name              text      not null,
-    middle_name            text      not null,
-    birth_date             date check (not null and birth_date <= now()::date - interval '18 years'),
-    passport               text check (length(passport) = 10), -- TODO
-    passport_issued_by     text      not null,
-    email                  text check (email like '%@%.%'),
-    phone_number           text check (phone_number ~ '^\d+$' and length(phone_number) = 11),
-    country                text      not null,
-    city                   text      not null,
-    address                text      not null
+    request_id         serial primary key,
+    request_at         timestamp(0) not null,
+    request_sum        int check (not null and request_sum >= 1000),
+    first_name         text         not null,
+    last_name          text         not null,
+    middle_name        text         not null,
+    birth_date         date check (not null and birth_date <= now()::date - interval '18 years'),
+    passport           text check (length(passport) = 10), -- TODO
+    passport_issued_by text         not null,
+    email              text check (email like '%@%.%'),
+    phone_number       text check (phone_number ~ '^\d+$' and length(phone_number) = 11),
+    country            text         not null,
+    city               text         not null,
+    address            text         not null
 );
 
 CREATE TABLE IF NOT EXISTS clients
 (
-    client_id text primary key check (length(client_id) = 10),
+    client_id         text primary key check (length(client_id) = 10),
 --     passport text references history_requests, -- can't be so because passport is not unique (could be multiple requests from one human)
     has_active_credit boolean not null,
     -- is_first_time == true, if client has exactly 1 credit in our company, else false
@@ -34,9 +34,9 @@ CREATE TABLE IF NOT EXISTS clients
 CREATE TABLE IF NOT EXISTS history_verification_results
 (
     request_id  integer primary key references history_requests,
-    model_id    integer   not null,
+    model_id    integer      not null,
     score       numeric(4, 3) check (score between 0 and 1),
-    is_verified boolean   not null,
+    is_verified boolean      not null,
     verified_at timestamp(0) not null
 );
 
@@ -85,13 +85,13 @@ CREATE TABLE IF NOT EXISTS orders
     request_id        integer references history_requests,
     client_id         text references clients,
     issued_sum        integer check (issued_sum >= 1000),
-    cred_end_date     date not null,
+    cred_end_date     date           not null,
     fee_percent       numeric(4, 3) check (fee_percent between 0 and 1),
     paid_sum          numeric(19, 2) check (paid_sum >= 0),
     next_payment_date date check (next_payment_date between issued_at and cred_end_date),
-    is_closed      boolean not null,
+    is_closed         boolean        not null,
     overdue_sum       numeric(19, 2) not null,
-    issued_at         date not null
+    issued_at         date           not null
 );
 
 CREATE TABLE IF NOT EXISTS history_payments
