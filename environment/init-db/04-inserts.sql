@@ -37,6 +37,20 @@ VALUES
      '0510123456', 'УМВД Кидал', 'scammer1337@mail.ru', '79943453455', 'Лалаленд2', 'ойбой', 'ул. Кукушкина, д. 51'),
     ('2023-08-03 07:18:57', 5000, 'Микро', 'Кидала', 'Три', '2000-07-12',
      '0520375677', 'УМВД Кидал', 'scammer1448@mail.ru', '79941084329', 'Лалаленд2', 'ойбой', 'ул. Кукушкина, д. 51');
+-- -- insert
+-- INSERT INTO history_requests
+--     (request_at, request_sum, first_name, last_name, middle_name, passport, passport_issued_by, birth_date, email, phone_number, country, city, address)
+-- VALUES
+--     ('2023-12-08', 1500, 'Alexey', 'Filippov', 'Fyodorovich', '1234567890', 'Passport Agency', '1949-12-31', 'affilippov@mail.com', '12345678900', 'Russia', 'St. Petersburg', 'Kantemirovskaya st., 3a building 1'),
+--     ('2023-12-08', 2000, 'Yuri', 'Bibikov', 'Nikolaevich', '1987654321', 'Passport Office', '1950-10-15', 'ynbibikov@mail.com', '79544438334', 'Russia', 'St. Petersburg', 'Kantemirovskaya st., 3a building 1'),
+--     ('2023-12-08', 3000, 'Augustin', 'Louis', 'Cauchy', '5678901234', 'Passport Service', '1800-05-20', 'ilovecalculus@mail.com', '75385920662', 'Russia', 'Shakhty', 'Vishnevaya st., 10, apt. 123'),
+--     ('2023-12-08', 1200, 'Vladimir', 'Basov', 'Diff', '3456789012', 'Passport Department', '546-12-15', 'zakhodite@yandex.ru', '74986864292', 'Russia', 'St. Petersburg', 'Petrovskaya Pier'),
+--     ('2023-12-08', 2500, 'Sergei', 'Kryzhevich', 'Gennadievich', '4567890123', 'Passport Authority', '1964-09-30', 'sgkryzhevich@mail.com', '73511782834', 'Russia', 'St. Petersburg', 'Kantemirovskaya st., 3A building 1'),
+--     ('2023-12-09', 2800, 'Evgeniy', 'Sokolov', 'Evgenievich', '9876543210', 'Passport Office', '1984-11-30', 'escaos@yandex.com', '73084391903', 'Russia', 'Dolgoprudny', '17 September st., 7, apt. 200'),
+--     ('2023-12-09', 1500, 'Alexander', 'Khrabrov', 'Igorevich', '5432109876', 'Passport Agency', '1969-09-15', 'aikhrabrov@mail.com', '72387438108', 'Russia', 'St. Petersburg', 'Kantemirovskaya st., 3a building 1'),
+--     ('2023-12-09', 1800, 'Sergei', 'Gorikhovsky', 'Dmovich', '1234509876', 'Passport Service', '1984-08-31', 'zacofezaidu@yandex.com', '78901234567', 'Russia', 'Vladivostok', 'Verkhneportovaya st., 50a'),
+--     ('2023-12-09', 2200, 'Evgeniy', 'Linsky', 'Evgenievich', '7654321098', 'Passport Department', '1979-12-31', 'elinsky@mail.com', '72387438108', 'Russia', 'Moscow', 'Pochtovaya st., 7, apt. 213'),
+--     ('2023-12-09', 3200, 'Inga', 'Andreeva', 'Alexandrovna', '5432109877', 'Passport Authority', '1985-10-31', 'ingaingainga@mail.com', '75227031639', 'Russia', 'St. Petersburg', 'Kantemirovskaya st., 3a building 1');
 
 -- history_verification_results
 INSERT INTO history_verification_results
@@ -101,14 +115,14 @@ VALUES
 -- orders
 INSERT INTO orders
     (request_id, client_id, issued_sum, cred_end_date, fee_percent,
-     paid_sum, next_payment_date, order_status, overdue_sum, issued_at)
+     paid_sum, next_payment_date, is_closed, overdue_sum, issued_at)
 VALUES
-    (1, '8415341288', 18500, '2023-04-20', 0.25, 0, '2023-02-20', true, 0, '2023-01-20'),
-    (4, '8417634900', 18000, '2023-10-21', 0.25, 13000, '2023-08-21', true, 0, '2023-06-21'),
-    (6, '1419635900', 90000, '2023-12-03', 0.23, 12050, '2023-11-03', true, 0, '2023-08-03'),
-    (7, '0519345700', 5000, '2023-09-06', 0.30, 0, '2023-08-06', true, 0, '2023-08-06'),
-    (8, '0510123456', 5000, '2023-09-08', 0.27, 0, '2023-08-08', true, 0, '2023-08-08'),
-    (9, '0520375677', 5000, '2023-09-09', 0.16, 0, '2023-08-09', true, 0, '2023-08-09');
+    (1, '8415341288', 18500, '2023-04-20', 0.25, 0, '2023-02-20', false, 0, '2023-01-20'),
+    (4, '8417634900', 18000, '2023-10-21', 0.25, 0, '2023-08-21', false, 0, '2023-06-21'),
+    (6, '1419635900', 90000, '2023-12-03', 0.23, 0, '2023-11-03', false, 0, '2023-08-03'),
+    (7, '0519345700', 5000, '2023-09-06', 0.30, 0, '2023-08-06', false, 0, '2023-08-06'),
+    (8, '0510123456', 5000, '2023-09-08', 0.27, 0, '2023-08-08', false, 0, '2023-08-08'),
+    (9, '0520375677', 5000, '2023-09-09', 0.16, 0, '2023-08-09', false, 0, '2023-08-09');
 
 -- history_credit_history
 INSERT INTO history_credit_history
@@ -127,11 +141,11 @@ VALUES
 INSERT INTO history_payments
     (payment_id, order_id, payment_sum_main, payment_sum_percent, payment_date)
 VALUES
-    (default, 1, 10000, 1100, '2023-05-01'),
-    (default, 2, 5020, 10, '2023-09-15'),
-    (default, 3, 999, 10, '2023-10-14'),
-    (default, 4, 1050, 912, '2023-09-29'),
-    (default, 6, 14940, 512, '2023-09-10');
+    (default, 1, 10000, 0, '2023-05-01'),
+    (default, 2, 5020, 0, '2023-09-15'),
+    (default, 3, 999, 0, '2023-10-14'),
+    (default, 4, 1050, 0, '2023-09-29'),
+    (default, 6, 14940, 0, '2023-09-10');  -- credit is closed!!
 
 -- overdue_orders
 INSERT INTO overdue_orders
