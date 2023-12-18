@@ -22,7 +22,7 @@ begin
             and (overdue_end_date is not null
               or (overdue_start_date is null and overdue_end_date is null))
           group by o.order_id, issued_at, paid_sum) possible_overdues
-    where (select get_ttl_due_sum(fee_percent, issued_sum, overdue_sum, issued_at, current_date) - paid_sum) > 0;
+    where get_ttl_due_sum(fee_percent, issued_sum, overdue_sum, issued_at, current_date) > paid_sum;
 end;
 $$ language plpgsql;
 
