@@ -1,5 +1,5 @@
-set
-    search_path = credit_scheme, public;
+
+set search_path = credit_scheme, public;
 
 -- На входящий платеж:
 -- 1. Обновляется поле paid_sum по кредиту.

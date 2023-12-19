@@ -78,6 +78,23 @@ CREATE TABLE IF NOT EXISTS history_decisions
     max_cred_end_date  date check (case when decision_reason_id in (1, 2, 3, 4) then null else not null end)
 );
 
+CREATE
+OR
+REPLACE
+function get_ttl_due_sum( -- this way we'll be easily able to change generated column
+    fee_percent numeric(4, 3),
+    issued_sum numeric(19, 2),
+    overdue_sum numeric(19, 2),
+    issued_at date,
+    cred_end_date date)
+    RETURNS numeric(19, 2) AS
+$$
+select issued_sum *
+       (1 + fee_percent + 0.02 * greatest(date_part('month', cred_end_date) - date_part('month', issued_at), 1)) +
+       overdue_sum;
+$$ LANGUAGE sql IMMUTABLE
+                STRICT;
+
 CREATE TABLE IF NOT EXISTS orders
 (
     order_id          serial primary key,
@@ -91,13 +108,8 @@ CREATE TABLE IF NOT EXISTS orders
     is_closed         boolean        not null,
     overdue_sum       numeric(19, 2) not null,
     issued_at         date           not null,
-    total_due_sum     numeric(19, 2) generated always as ( issued_sum *
-                                                           (
-                                                               1 + fee_percent + 0.02 * greatest(
-                                                                       date_part('month', cred_end_date) -
-                                                                       date_part('month', issued_at),
-                                                                       1)
-                                                               ) + overdue_sum ) stored
+    total_due_sum     numeric(19, 2) generated always as ( get_ttl_due_sum(fee_percent, issued_sum, overdue_sum,
+                                                                           issued_at, cred_end_date) ) stored
 );
 
 CREATE TABLE IF NOT EXISTS history_payments
