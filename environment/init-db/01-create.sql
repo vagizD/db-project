@@ -79,9 +79,9 @@ CREATE TABLE IF NOT EXISTS history_decisions
 );
 
 CREATE
-OR
-REPLACE
-function get_ttl_due_sum( -- this way we'll be easily able to change generated column
+    OR
+    REPLACE
+    function get_ttl_due_sum( -- this way we'll be easily able to change generated column
     fee_percent numeric(4, 3),
     issued_sum numeric(19, 2),
     overdue_sum numeric(19, 2),
