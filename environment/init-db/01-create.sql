@@ -60,7 +60,7 @@ CREATE TABLE IF NOT EXISTS models
 -- finally decisions
 CREATE TABLE IF NOT EXISTS history_decisions
 (
-    request_id         serial primary key references history_requests,
+    request_id         integer primary key references history_requests,
     -- decision_reason_id == 1 is in blacklist
     -- decision_reason_id == 2 is client not verified
     -- decision_reason_id == 3 is scoring model did not approve
