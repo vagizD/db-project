@@ -85,7 +85,7 @@ class CreditRouting:
             return
 
         request["decision_reason_id"] = 4
-        self.insert_history_requests(request)
+        self.insert_history_decisions(request)
 
     @staticmethod
     def preprocess(value):
@@ -126,8 +126,7 @@ class CreditRouting:
         return request
 
     def insert_history_decisions(self, request):
-        startDate = datetime.now()
-        request["max_cred_end_date"] = datetime(startDate.year + 1, startDate.month, startDate.day)
+        request["max_cred_end_date"] = datetime(datetime.now().year + 1)
         fields = {"model_id", "model_score", "scored_at", "approved_sum",
                   "is_under", "max_cred_end_date"}
         insert = self.get_insert("history_decisions", request, fields)
