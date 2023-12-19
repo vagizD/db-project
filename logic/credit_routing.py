@@ -98,20 +98,14 @@ class CreditRouting:
         for field in fields:
             if field in request.keys():
                 values.append(CreditRouting.preprocess(request[field]))
-            elif tbl_name == "history_decisions":
-                if field == "model_score" and "credit_score" in request.keys():
-                    values.append(CreditRouting.preprocess(request["credit_score"]))
-                elif field == "model_id" and "scoring_model_id" in request.keys():
-                    values.append(CreditRouting.preprocess(request["scoring_model_id"]))
-                else:
-                    values.append(None)
-            elif tbl_name == "history_verification_results":
-                if field == "score" and "verification_score" in request.keys():
-                    values.append(CreditRouting.preprocess(request["verification_score"]))
-                elif field == "model_id" and "verification_model_id" in request.keys():
-                    values.append(CreditRouting.preprocess(request["verification_model_id"]))
-                else:
-                    values.append(None)
+            elif tbl_name == "history_decisions" and field == "model_score":
+                values.append(CreditRouting.preprocess(request["credit_score"]))
+            elif tbl_name == "history_decisions" and field == "model_id":
+                values.append(CreditRouting.preprocess(request["scoring_model_id"]))
+            elif tbl_name == "history_verification_results" and field == "score":
+                values.append(CreditRouting.preprocess(request["verification_score"]))
+            elif tbl_name == "history_verification_results" and field == "model_id":
+                values.append(CreditRouting.preprocess(request["verification_model_id"]))
             else:
                 values.append(None)
         insert = f"INSERT into {tbl_name}({', '.join(fields)}) values {tuple(values)} returning request_id;"
@@ -147,6 +141,17 @@ class CreditRouting:
         self.cursor.execute(insert)
 
     def check(self, tbl_name):
+        """
+        prints all data from table tbl_name
+        :param tbl_name: name of a table
+        :return: None
+        """
         check = f"SELECT * FROM {tbl_name};"
-        self.cursor.execute(check)
-        print(self.cursor.fetchall())
+        try:
+            print(f"data of {tbl_name}:")
+            self.cursor.execute(check)
+            for line in self.cursor.fetchall():
+                print(*line)
+            print()
+        except:
+            print(f"No such table {tbl_name}")

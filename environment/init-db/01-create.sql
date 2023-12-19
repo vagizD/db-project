@@ -1,4 +1,4 @@
--- DROP SCHEMA credit_scheme CASCADE;
+-- DROP SCHEMA IF EXISTS credit_scheme CASCADE;
 
 CREATE SCHEMA IF NOT EXISTS credit_scheme;
 
