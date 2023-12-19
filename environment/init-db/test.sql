@@ -1,3 +1,6 @@
+
+set search_path = credit_scheme, public;
+
 select issued_sum, total_due_sum
 from orders
 where order_id = 4;
