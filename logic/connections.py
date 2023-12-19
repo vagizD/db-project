@@ -14,9 +14,11 @@ with open('../environment/init-db/04-inserts.sql', encoding='utf-8') as f:
 
 res.execute(insert)
 
-check = "SELECT * FROM orders"
+check = "SELECT * FROM orders;"
 
 res.execute(check)
 
 out = res.fetchall()
-print(*out)
+
+for row in out:
+    print(row)
