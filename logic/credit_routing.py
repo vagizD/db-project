@@ -5,22 +5,24 @@ from psycopg2 import connect
 
 
 class CreditRouting:
-    def create_db(self):
-        with open('../environment/init-db/01-create.sql', encoding='utf-8') as f:
-            create = f.read()
-        self.cursor.execute(create)
 
     def __init__(self, db, user, password):
+        self.cn = None
+        self.cursor = None
         self.db = db
         self.user = user
         self.password = password
-        self.cn = connect(dbname=self.db, user=self.user, password=self.password, port="5432")
-        self.cursor = self.cn.cursor()
-        self.create_db()
+        self.connect_to_db()
+        self.create_scheme()
 
     def connect_to_db(self):
-        self.cn = connect(dbname=self.db, user=self.user, password=self, port="5432")
+        self.cn = connect(dbname=self.db, user=self.user, password=self.password, host='localhost', port='5432')
         self.cursor = self.cn.cursor()
+
+    def create_scheme(self):
+        with open('../environment/init-db/01-create.sql', encoding='utf-8') as f:
+            create = f.read()
+        self.cursor.execute(create)
 
     def preprocess_request(self, request):
         request["request_at"] = datetime.today()
@@ -122,11 +124,11 @@ class CreditRouting:
             "city", "address"
         }
         insert = self.get_insert("history_requests", request, fields)
-        print(insert)
+        # print(insert)
 
         self.cursor.execute(insert)
         request["request_id"] = self.cursor.fetchone()[0]
-        print(request["request_id"])
+        # print(request["request_id"])
         return request
 
     def insert_history_decisions(self, request):
@@ -135,37 +137,16 @@ class CreditRouting:
         fields = {"model_id", "model_score", "scored_at", "approved_sum",
                   "is_under", "max_cred_end_date"}
         insert = self.get_insert("history_decisions", request, fields)
-        print(insert)
+        # print(insert)
         self.cursor.execute(insert)
 
     def insert_history_verification_results(self, request):
         fields = {"request_id", "model_id", "score", "is_verified", "verified_at"}
         insert = self.get_insert("history_verification_results", request, fields)
-        print(insert)
+        # print(insert)
         self.cursor.execute(insert)
 
     def check(self, tbl_name):
         check = f"SELECT * FROM {tbl_name};"
         self.cursor.execute(check)
         print(self.cursor.fetchall())
-
-
-REQUEST = {
-    "request_sum": 1000,
-    "first_name": "Vasya",
-    "last_name": "Pirogov",
-    "middle_name": "-",
-    "birth_date": "1990-01-01",
-    "passport": "1234567891",
-    "passport_issued_by": "МФЦ Алтайского Края",
-    "email": "ivanov@yandex.ru",
-    "phone_number": "72663767143",
-    "country": "Лалаленд",
-    "city": "КАЗАХСТАН",
-    "address": "ул. Примерная, д. 3"
-}
-
-ex = CreditRouting("postgres", "postgres", "1234")
-ex.check("history_requests")
-ex.cred_routing(REQUEST)
-ex.check("history_requests")

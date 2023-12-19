@@ -3,7 +3,6 @@ import numpy as np
 ACTIVE_VERIFICATION_MODEL_ID = 1
 ACTIVE_SCORING_MODEL_ID = 2
 
-
 MODELS = {
     1: {
         "threshold": 1 - 0.85,

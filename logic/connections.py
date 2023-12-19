@@ -1,4 +1,5 @@
-from psycopg2 import connect # you need pip install here
+# this is a testing purpose file
+from psycopg2 import connect  # you need pip install here
 
 cn = connect(database="postgres", user="postgres", password="1234")
 
