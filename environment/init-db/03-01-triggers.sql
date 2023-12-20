@@ -10,16 +10,16 @@ CREATE
     OR REPLACE PROCEDURE close_and_remove_active_credit(order_id_ integer)
     LANGUAGE sql AS
 $$
-UPDATE orders o
-SET is_closed = True
-WHERE o.order_id = order_id_;
+    UPDATE credit_scheme.orders o
+    SET is_closed = True
+    WHERE o.order_id = order_id_;
 
-UPDATE clients c
-SET has_active_credit = False,
-    is_first_time     = False
-WHERE c.client_id = (SELECT client_id
-                     FROM orders o
-                     WHERE o.order_id = order_id_);
+    UPDATE credit_scheme.clients c
+    SET has_active_credit = False,
+        is_first_time     = False
+    WHERE c.client_id = (SELECT client_id
+                         FROM credit_scheme.orders o
+                         WHERE o.order_id = order_id_);
 $$;
 
 CREATE
@@ -27,9 +27,9 @@ CREATE
                                          payment_sum numeric(19, 2))
     LANGUAGE sql AS
 $$
-UPDATE orders o
-SET paid_sum = o.paid_sum + payment_sum
-WHERE o.order_id = order_id_;
+    UPDATE credit_scheme.orders o
+    SET paid_sum = o.paid_sum + payment_sum
+    WHERE o.order_id = order_id_;
 $$;
 
 CREATE
@@ -39,22 +39,22 @@ $func$
 BEGIN
     IF
         (SELECT is_closed
-         FROM orders o
+         FROM credit_scheme.orders o
          WHERE o.order_id = NEW.order_id) = True
     THEN
         RAISE EXCEPTION 'Credit is already closed.';
     END IF;
 
-    CALL update_paid_sum(NEW.order_id,
+    CALL credit_scheme.update_paid_sum(NEW.order_id,
                          NEW.payment_sum_main + NEW.payment_sum_percent);
 
     IF
         (SELECT total_due_sum - paid_sum as amt_left
-         FROM orders o
+         FROM credit_scheme.orders o
          WHERE o.order_id = NEW.order_id)
             <= 0.0
     THEN
-        CALL close_and_remove_active_credit(NEW.order_id);
+        CALL credit_scheme.close_and_remove_active_credit(NEW.order_id);
     END IF;
 
     RETURN NEW;

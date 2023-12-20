@@ -81,7 +81,7 @@ select *
 from credit_views.decision_reasons_view;
 
 create or replace view credit_views.history_decisions_view as
-select model_score,
+select scoring_model_score,
        scored_at,
        approved_sum,
        max_cred_end_date
@@ -126,7 +126,7 @@ from credit_views.history_requests_view;
 
 create or replace view credit_views.history_verification_results_view
 as
-select credit_views.mask_number(score) as masked_score, is_verified, verified_at
+select credit_views.mask_number(verification_model_score) as masked_score, is_verified, verified_at
 from history_verification_results;
 
 select *
@@ -135,7 +135,7 @@ from credit_views.history_verification_results_view;
 create or replace view credit_views.models_view
 as
 select model_id,
-       credit_views.mask_number(threshold)       as masked_threshlod,
+       credit_views.mask_number(threshold)       as masked_threshold,
        algorithm_description,
        deployed_at,
        credit_views.mask_number(traffic_percent) as masked_traffic_percent,
@@ -150,12 +150,12 @@ as
 select order_id,
        request_id,
        credit_views.mask_number(client_id) as masked_client_id,
-       '*'                                 as is_issued,
+       '*'                                    as is_issued,
        cred_end_date,
        fee_percent,
        paid_sum,
        next_payment_date,
-       '*'                                 as is_closed,
+       '*'                                    as is_closed,
        overdue_sum,
        issued_at,
        total_due_sum

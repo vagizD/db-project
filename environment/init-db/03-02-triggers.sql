@@ -11,14 +11,14 @@ create or replace function new_order_check()
     $$
     begin
         if exists (select client_id
-                   from clients
+                   from credit_scheme.clients
                    where client_id = new.client_id)
         then
-            update clients
+            update credit_scheme.clients
             set has_active_credit = true
             where client_id = new.client_id;
         else
-            insert into clients (client_id, has_active_credit, is_first_time)
+            insert into credit_scheme.clients (client_id, has_active_credit, is_first_time)
             values (new.client_id, true, true);
         end if;
     return new;

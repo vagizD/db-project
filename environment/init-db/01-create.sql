@@ -4,6 +4,16 @@ CREATE SCHEMA IF NOT EXISTS credit_scheme;
 
 SET search_path = credit_scheme, public;
 
+CREATE TABLE IF NOT EXISTS models
+(
+    model_id              serial primary key,
+    threshold             numeric(4, 3) check (threshold between 0 and 1),
+    algorithm_description text,
+    deployed_at           date not null,
+    traffic_percent       numeric(4, 3) check (traffic_percent between 0 and 1),
+    model_type            text check (model_type in ('verification', 'scoring'))
+);
+
 CREATE TABLE IF NOT EXISTS history_requests
 (
     request_id         serial primary key,
@@ -32,9 +42,9 @@ CREATE TABLE IF NOT EXISTS clients
 
 CREATE TABLE IF NOT EXISTS history_verification_results
 (
-    request_id  integer primary key references history_requests,
-    model_id    integer      not null,
-    score       numeric(4, 3) check (score between 0 and 1),
+    request_id               integer primary key references history_requests,
+    verification_model_id    integer references models,
+    verification_model_score numeric(4, 3) check (verification_model_score between 0 and 1),
     is_verified boolean      not null,
     verified_at timestamp(0) not null
 );
@@ -46,17 +56,6 @@ CREATE TABLE IF NOT EXISTS decision_reasons
     decision_text      text not null
 );
 
-CREATE TABLE IF NOT EXISTS models
-(
-    model_id              serial primary key,
-    threshold             numeric(4, 3) check (threshold between 0 and 1),
-    algorithm_description text,
-    deployed_at           date not null,
-    traffic_percent       numeric(4, 3) check (traffic_percent between 0 and 1),
-    model_type            text check (model_type in ('verification', 'scoring'))
-);
-
-
 -- finally decisions
 CREATE TABLE IF NOT EXISTS history_decisions
 (
@@ -67,9 +66,9 @@ CREATE TABLE IF NOT EXISTS history_decisions
     -- decision_reason_id == 4 is business logic failed
     -- decision_reason_id == 5 is order approved
     decision_reason_id integer references decision_reasons,
-    model_id           integer references models,
-    model_score        numeric(4, 3) check
-        (case when decision_reason_id in (1, 2) then null else model_score between 0 and 1 end),
+    scoring_model_id           integer references models,
+    scoring_model_score        numeric(4, 3) check
+        (case when decision_reason_id in (1, 2) then null else scoring_model_score between 0 and 1 end),
     scored_at          timestamp(0) check
         (case when decision_reason_id in (1, 2) then null else not null end),
     approved_sum       integer check

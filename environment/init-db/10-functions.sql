@@ -10,7 +10,7 @@ set search_path = credit_scheme, public;
 create or replace function check_overdues() returns void as
 $$
 begin
-    insert into overdue_orders(order_id, overdue_start_date)
+    insert into credit_scheme.overdue_orders(order_id, overdue_start_date)
     select order_id, current_date
     from (select o.order_id                      as order_id,
                  paid_sum,
@@ -22,8 +22,8 @@ begin
                  greatest(date_part('month', cred_end_date) -
                           date_part('month', issued_at),
                           1)                     as n_months
-          from orders o
-                   left join overdue_orders ov on o.order_id = ov.order_id
+          from credit_scheme.orders o
+                   left join credit_scheme.overdue_orders ov on o.order_id = ov.order_id
           where is_closed = false
             and next_payment_date = current_date - interval '1' day
             and (
@@ -40,15 +40,15 @@ $$ language plpgsql;
 create or replace function penalty() returns void as
 $$
 begin
-    update orders o
+    update credit_scheme.orders o
     set overdue_sum = overdue_sum +
                       0.05 * total_due_sum /
                       greatest(
                               date_part('month', cred_end_date) - date_part('month', issued_at),
                               1)
     where (o.order_id in (select distinct o.order_id
-                          from overdue_orders ov
-                                   inner join orders o
+                          from credit_scheme.overdue_orders ov
+                                   inner join credit_scheme.orders o
                                               on ov.order_id = o.order_id
                           where overdue_end_date is null));
 end;
