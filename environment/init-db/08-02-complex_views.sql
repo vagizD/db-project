@@ -7,7 +7,7 @@ SET search_path = credit_scheme, public;
 CREATE OR REPLACE VIEW credit_views.stats_by_cities AS
     WITH orders_data AS (
     SELECT hr.city,
-           COALESCE(ROUND(AVG(o.issued_sum), 3), 0) AS avg_issued_sum,
+           COALESCE(ROUND(AVG(o.issued_sum), 2), 0) AS avg_issued_sum,
            COALESCE(PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY o.issued_sum), 0) AS median_issued_sum,
            ABS(
                 SUM(CASE
