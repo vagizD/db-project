@@ -1,11 +1,11 @@
 set search_path = credit_scheme, public;
 
 -- testing purposes
-update orders
-set cred_end_date     = current_date + interval '6' month,
-    next_payment_date = current_date - interval '1' day
-where order_id <= 2
-  and is_closed = false;
+-- update orders
+-- set cred_end_date     = current_date + interval '6' month,
+--    next_payment_date = current_date - interval '1' day
+-- where order_id <= 2
+--   and is_closed = false;
 
 create or replace function check_overdues() returns void as
 $$
