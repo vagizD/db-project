@@ -37,24 +37,17 @@ class AvengersDB:
 def pool_conn(func):
     """Atomacity"""
     def inner(*args, **kwargs):
-        made_tries = 0
-        allowed_tries = 2
-        while made_tries < allowed_tries:
-            conn = avengers.get_conn()
-            try:
-                with conn.cursor() as cur:
-                    result = func(cur, *args, **kwargs)
-            except Exception as e:
-                print(e)
-                conn.rollback()
-                if made_tries == allowed_tries:
-                    raise e
-                made_tries += 1
-            else:
-                conn.commit()
-                break
-            finally:
-                avengers.put_conn(conn)
+        conn = avengers.get_conn()
+        try:
+            with conn.cursor() as cur:
+                result = func(cur, *args, **kwargs)
+        except Exception as e:
+            print(e)
+            conn.rollback()
+        else:
+            conn.commit()
+        finally:
+            avengers.put_conn(conn)
 
         return result
 
