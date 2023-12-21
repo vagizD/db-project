@@ -11,6 +11,7 @@ def simulate_cred_routing(data_path):
     for row in data.rows():
         request = dict(zip(cols, row))
         cred_routing(request)
+    print("All decisions made.")
 
 
 def simulate_orders():
@@ -40,6 +41,7 @@ def simulate_orders():
     )
 
     execute_query(query)
+    print("Clients added.")
 
 
 def simulate_payments():
@@ -51,7 +53,7 @@ def simulate_payments():
         VALUES (1, 10000, 0, '2023-05-01'),
                (2, 5020, 0, '2023-09-15'),
                (3, 999, 0, '2023-10-14'),
-               (3, 512, 52, '2023-10-30'),
+               (3, 512, 0, '2023-10-30'),
                (3, 955, 0, '2023-11-19'),
                (4, 1050, 0, '2023-09-29'),
                (6, 14940, 0, '2023-09-10');
@@ -59,6 +61,7 @@ def simulate_payments():
     )
 
     execute_query(query)
+    print("Payments processed.")
 
 
 def simulate_blacklist():
@@ -71,11 +74,13 @@ def simulate_blacklist():
             'Скамер' as under_report,
             '2023-07-28' as start_date
         FROM credit_scheme.clients
+        ORDER BY random()
         LIMIT 2
        """
     )
 
     execute_query(query)
+    print("Blacklist updated.")
 
 
 def simulate_overdue_algo():
